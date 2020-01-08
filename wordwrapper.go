@@ -1,5 +1,9 @@
 package nigari
 
+import (
+	"unicode"
+)
+
 type WordWrapper struct {
 	Measurer Measurer
 	Width    float64
@@ -49,7 +53,16 @@ func (w *WordWrapper) Do(s string) []string {
 			i--
 		}
 
-		lines = append(lines, string(rs[start:i]))
+		// hyphenation
+		ws, we := word(rs, i-1)
+		if ws >= 0 && we > i-1 {
+			i--
+			// TODO: measure size of "-"
+			lines = append(lines, string(rs[start:i])+"-")
+		} else {
+			lines = append(lines, string(rs[start:i]))
+		}
+
 		start = i
 		width = 0
 	}
@@ -59,4 +72,38 @@ func (w *WordWrapper) Do(s string) []string {
 	}
 
 	return lines
+}
+
+func word(rs []rune, i int) (start, end int) {
+	if !isAlpha(rs[i]) {
+		return -1, -1
+	}
+
+	start = i
+	for start > 0 {
+		if isAlpha(rs[start-1]) {
+			start--
+		} else if unicode.IsSpace(rs[start-1]) {
+			break
+		} else {
+			return -1, -1
+		}
+	}
+
+	end = i
+	for end < len(rs) {
+		if isAlpha(rs[end]) {
+			end++
+		} else if unicode.IsSpace(rs[end]) {
+			break
+		} else {
+			return -1, -1
+		}
+	}
+
+	return start, end
+}
+
+func isAlpha(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
 }
