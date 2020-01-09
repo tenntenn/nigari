@@ -1,13 +1,17 @@
 package nigari
 
+import (
+	"golang.org/x/image/math/fixed"
+)
+
 type Measurer interface {
-	Do(r rune) (w, h float64)
+	Do(c, prevC rune) fixed.Int26_6
 }
 
-type MeasurerFunc func(r rune) (w, h float64)
+type MeasurerFunc func(c, prevC rune) fixed.Int26_6
 
 var _ Measurer = MeasurerFunc(nil)
 
-func (m MeasurerFunc) Do(r rune) (w, h float64) {
-	return m(r)
+func (m MeasurerFunc) Do(c, prevC rune) fixed.Int26_6 {
+	return m(c, prevC)
 }

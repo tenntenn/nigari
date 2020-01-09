@@ -2,11 +2,13 @@ package nigari
 
 import (
 	"unicode"
+
+	"golang.org/x/image/math/fixed"
 )
 
 type WordWrapper struct {
 	Measurer Measurer
-	Width    float64
+	Width    fixed.Int26_6
 }
 
 func (w *WordWrapper) Do(s string) []string {
@@ -23,12 +25,16 @@ func (w *WordWrapper) Do(s string) []string {
 
 	var (
 		lines    []string
-		width    float64
+		width    fixed.Int26_6
 		start, i int
 	)
 
 	for i < len(rs) {
-		_, dw := w.Measurer.Do(rs[i])
+		prevC := rune(-1)
+		if i-1 >= 0 {
+			prevC = rs[i-1]
+		}
+		dw := w.Measurer.Do(rs[i], prevC)
 		if width+dw <= w.Width {
 			width += dw
 			i++
@@ -36,8 +42,11 @@ func (w *WordWrapper) Do(s string) []string {
 		}
 
 		for i-start > 0 && i-1 > 0 && gyomatsuKinsoku[rs[i-1]] {
-			_, dw := w.Measurer.Do(rs[i])
-			width -= dw
+			prevC := rune(-1)
+			if i-1 >= 0 {
+				prevC = rs[i-1]
+			}
+			width -= w.Measurer.Do(rs[i], prevC)
 			if width < 0 {
 				width = 0
 			}
@@ -45,8 +54,12 @@ func (w *WordWrapper) Do(s string) []string {
 		}
 
 		for i-start > 0 && gyotouKinsoku[rs[i]] {
-			_, dw := w.Measurer.Do(rs[i])
-			width -= dw
+			prevC := rune(-1)
+			if i-1 >= 0 {
+				prevC = rs[i-1]
+			}
+
+			width -= w.Measurer.Do(rs[i], prevC)
 			if width < 0 {
 				width = 0
 			}

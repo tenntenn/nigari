@@ -6,27 +6,28 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/tenntenn/nigari"
+	"golang.org/x/image/math/fixed"
 )
 
 func TestWordWrapper(t *testing.T) {
 	cases := []struct {
 		s    string
-		w    float64
+		w    fixed.Int26_6
 		want []string
 	}{
-		{"123。56789", 3, []string{"12", "3。5", "678", "9"}},
-		{"abcd efgh", 3, []string{"ab-", "cd ", "ef-", "gh"}},
-		{"abcdefgh", 3, []string{"ab-", "cd-", "ef-", "gh"}},
+		{"123。56789", fixed.I(3), []string{"12", "3。5", "678", "9"}},
+		{"abcd efgh", fixed.I(3), []string{"ab-", "cd ", "ef-", "gh"}},
+		{"abcdefgh", fixed.I(3), []string{"ab-", "cd-", "ef-", "gh"}},
 	}
 
 	for _, tt := range cases {
 		tt := tt
-		name := fmt.Sprintf("%s-%.0f", tt.s, tt.w)
+		name := fmt.Sprintf("%s-%v", tt.s, tt.w)
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			w := &nigari.WordWrapper{
-				Measurer: nigari.MeasurerFunc(func(r rune) (w, h float64) {
-					return 1, 1
+				Measurer: nigari.MeasurerFunc(func(c, prevC rune) fixed.Int26_6 {
+					return fixed.I(1)
 				}),
 				Width: tt.w,
 			}
