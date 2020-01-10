@@ -88,6 +88,11 @@ func (w *WordWrapper) Do(s string) []string {
 }
 
 func word(rs []rune, i int) (start, end int) {
+
+	if i < 0 || i >= len(rs) {
+		return -1, -1
+	}
+
 	if !isAlpha(rs[i]) {
 		return -1, -1
 	}
